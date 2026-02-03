@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+obj.*/
+*.o
+*.dylib
+*.dll
+*.so
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# macOS
+.DS_Store
+
+# dotnet
+*.nupkg
+project.lock.json

@@ -1,0 +1,10 @@
+{
+  "Cheats": [
+    {
+      "Description": "30 Lives",
+      "Type": "NesCustom",
+      "Enabled": true,
+      "Codes": "0032:1E"
+    }
+  ]
+}
