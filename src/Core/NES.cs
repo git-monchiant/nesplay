@@ -36,16 +36,18 @@ public class NES {
         // Save/Load state handling
         HandleSaveLoad();
 
-        // Apply 30 lives cheat for Contra - only once at start
+        // Apply cheat based on RomConfig
+        var romCfg = RomConfig.Current;
         frameCount++;
-        if (!livesSet && frameCount > 180) {  // Wait for game to initialize (~3 seconds)
-            // Contra (USA) - Player 1 lives at $0032, Player 2 at $0033
-            // Lives are 0-indexed (value 29 = 30 lives displayed)
-            if (bus.ram[0x0032] > 0 && bus.ram[0x0032] < 29) {
-                bus.ram[0x0032] = 29;  // 30 lives (0-indexed)
-                bus.ram[0x0033] = 29;
-                livesSet = true;
+        if (!livesSet && romCfg.CheatEnabled && frameCount > romCfg.CheatDelayFrames) {
+            if (romCfg.CheatAddress1 > 0) {
+                bus.ram[romCfg.CheatAddress1] = romCfg.CheatValue;
             }
+            if (romCfg.CheatAddress2 > 0) {
+                bus.ram[romCfg.CheatAddress2] = romCfg.CheatValue;
+            }
+            livesSet = true;
+            Console.WriteLine($"Cheat applied for {romCfg.RomName}");
         }
 
         while (cycles < 29828) {

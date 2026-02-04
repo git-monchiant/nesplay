@@ -26,7 +26,7 @@ public class GUI {
         // 16:9 window with game centered (letterbox)
         int windowHeight = NES_HEIGHT * Helper.scale;
         int windowWidth = windowHeight * 16 / 9;
-        Raylib.InitWindow(windowWidth, windowHeight, "Contra");
+        Raylib.InitWindow(windowWidth, windowHeight, RomConfig.Current.WindowTitle);
         Raylib.SetTargetFPS(60);
 
         rlImGui.Setup(true);
