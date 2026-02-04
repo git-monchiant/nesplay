@@ -1,8 +1,14 @@
+using Raylib_cs;
+
 public class NES {
     Cartridge cartridge;
-    Bus bus;
+    public Bus bus;  // Made public for save state access
     int frameCount = 0;
     bool livesSet = false;
+
+    // Save/Load button state (prevent repeat triggers)
+    private bool savePressed = false;
+    private bool loadPressed = false;
 
     public NES() {
         if (Helper.embeddedRom != null) {
@@ -27,6 +33,9 @@ public class NES {
 
         bus.input.UpdateController();
 
+        // Save/Load state handling
+        HandleSaveLoad();
+
         // Apply 30 lives cheat for Contra - only once at start
         frameCount++;
         if (!livesSet && frameCount > 180) {  // Wait for game to initialize (~3 seconds)
@@ -46,5 +55,40 @@ public class NES {
         }
 
         bus.ppu.DrawFrame(Helper.scale);
+    }
+
+    private void HandleSaveLoad() {
+        // Keyboard: 1 = Save, 2 = Load
+        bool saveKey = Raylib.IsKeyDown(KeyboardKey.One);
+        bool loadKey = Raylib.IsKeyDown(KeyboardKey.Two);
+
+        // Gamepad: L1/L2 = Save, R1/R2 = Load
+        bool saveButton = false;
+        bool loadButton = false;
+
+        if (Raylib.IsGamepadAvailable(0)) {
+            // L1 (LeftTrigger1) or L2 (LeftTrigger2) = Save
+            saveButton = Raylib.IsGamepadButtonDown(0, GamepadButton.LeftTrigger1) ||
+                        Raylib.IsGamepadButtonDown(0, GamepadButton.LeftTrigger2);
+            // R1 (RightTrigger1) or R2 (RightTrigger2) = Load
+            loadButton = Raylib.IsGamepadButtonDown(0, GamepadButton.RightTrigger1) ||
+                        Raylib.IsGamepadButtonDown(0, GamepadButton.RightTrigger2);
+        }
+
+        // Save state (with debounce)
+        if ((saveKey || saveButton) && !savePressed) {
+            savePressed = true;
+            SaveState.Save(bus);
+        } else if (!saveKey && !saveButton) {
+            savePressed = false;
+        }
+
+        // Load state (with debounce)
+        if ((loadKey || loadButton) && !loadPressed) {
+            loadPressed = true;
+            SaveState.Load(bus);
+        } else if (!loadKey && !loadButton) {
+            loadPressed = false;
+        }
     }
 }

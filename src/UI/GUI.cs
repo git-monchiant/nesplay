@@ -86,6 +86,9 @@ public class GUI {
             
             if (Helper.fpsEnable) Raylib.DrawFPS(0, Helper.showMenuBar ? 19 : 0);
 
+            // Draw save/load notification
+            Notification.Draw(10, windowHeight - 40);
+
             rlImGui.End();
             Raylib.EndDrawing();
         }
