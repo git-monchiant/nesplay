@@ -35,7 +35,8 @@ public class PSInputConfig {
 }
 
 public class Config {
-    private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config.json");
+    private static string ExeDir => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+    private static string ConfigPath => Path.Combine(ExeDir, "config.json");
     private static Config? _instance;
 
     public static Config Instance {

@@ -37,17 +37,26 @@ public class NES {
         HandleSaveLoad();
 
         // Apply cheat based on RomConfig
+        // Wait until game initializes lives (value > 0) then set cheat value
         var romCfg = RomConfig.Current;
         frameCount++;
         if (!livesSet && romCfg.CheatEnabled && frameCount > romCfg.CheatDelayFrames) {
-            if (romCfg.CheatAddress1 > 0) {
-                bus.ram[romCfg.CheatAddress1] = romCfg.CheatValue;
+            // Check if lives have been initialized (> 0) and not already at cheat value
+            bool addr1Ready = romCfg.CheatAddress1 == 0 ||
+                             (bus.ram[romCfg.CheatAddress1] > 0 && bus.ram[romCfg.CheatAddress1] < romCfg.CheatValue);
+            bool addr2Ready = romCfg.CheatAddress2 == 0 ||
+                             (bus.ram[romCfg.CheatAddress2] > 0 && bus.ram[romCfg.CheatAddress2] < romCfg.CheatValue);
+
+            if (addr1Ready || addr2Ready) {
+                if (romCfg.CheatAddress1 > 0) {
+                    bus.ram[romCfg.CheatAddress1] = romCfg.CheatValue;
+                }
+                if (romCfg.CheatAddress2 > 0) {
+                    bus.ram[romCfg.CheatAddress2] = romCfg.CheatValue;
+                }
+                livesSet = true;
+                Console.WriteLine($"Cheat applied for {romCfg.RomName}");
             }
-            if (romCfg.CheatAddress2 > 0) {
-                bus.ram[romCfg.CheatAddress2] = romCfg.CheatValue;
-            }
-            livesSet = true;
-            Console.WriteLine($"Cheat applied for {romCfg.RomName}");
         }
 
         while (cycles < 29828) {

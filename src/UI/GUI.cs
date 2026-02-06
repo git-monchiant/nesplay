@@ -43,8 +43,8 @@ public class GUI {
 
         fileDialog = new FileDialog(Directory.GetCurrentDirectory());
 
-        icon = Raylib.LoadImage(Path.Combine(AppContext.BaseDirectory, "res", "Logo.png"));
-        backgroundTexture = Raylib.LoadTexture(Path.Combine(AppContext.BaseDirectory, "res", "Background.png"));
+        icon = Raylib.LoadImage(Path.Combine(Helper.ExeDirectory, "res", "Logo.png"));
+        backgroundTexture = Raylib.LoadTexture(Path.Combine(Helper.ExeDirectory, "res", "Background.png"));
 
         Raylib.SetWindowIcon(icon);
     }

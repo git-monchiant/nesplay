@@ -35,7 +35,8 @@ public class SaveState {
     // Cartridge PRG RAM (for games that use it)
     public byte[]? PRG_RAM { get; set; }
 
-    private static readonly string SavePath = Path.Combine(AppContext.BaseDirectory, "savestate.json");
+    private static string ExeDir => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+    private static string SavePath => Path.Combine(ExeDir, "savestate.json");
 
     public static void Save(Bus bus) {
         var state = new SaveState();

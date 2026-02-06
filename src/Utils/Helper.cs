@@ -1,6 +1,9 @@
 using System.Reflection;
 
 public class Helper {
+    // Get actual exe location (works with single-file publish)
+    public static string ExeDirectory => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+
     public static int scale;
     public static string romPath = "";
     public static bool debug = false;
@@ -20,6 +23,9 @@ public class Helper {
         scale = Config.Instance.Scale;
         fpsEnable = Config.Instance.ShowFps;
 
+        // Extract embedded resources (images) on first run
+        ExtractEmbeddedResources();
+
         // Try to load embedded ROM from resources
         try {
             var assembly = Assembly.GetExecutingAssembly();
@@ -34,6 +40,40 @@ public class Helper {
             }
         } catch (Exception ex) {
             Console.WriteLine($"No embedded ROM: {ex.Message}");
+        }
+    }
+
+    private static void ExtractEmbeddedResources() {
+        var assembly = Assembly.GetExecutingAssembly();
+        var resDir = Path.Combine(ExeDirectory, "res");
+
+        // Create res folder if it doesn't exist
+        if (!Directory.Exists(resDir)) {
+            Directory.CreateDirectory(resDir);
+        }
+
+        // List of resources to extract
+        var resources = new Dictionary<string, string> {
+            { "Nesplay.res.Background.png", "Background.png" },
+            { "Nesplay.res.Logo.png", "Logo.png" }
+        };
+
+        foreach (var res in resources) {
+            var filePath = Path.Combine(resDir, res.Value);
+            if (!File.Exists(filePath)) {
+                try {
+                    using (var stream = assembly.GetManifestResourceStream(res.Key)) {
+                        if (stream != null) {
+                            using (var fileStream = File.Create(filePath)) {
+                                stream.CopyTo(fileStream);
+                            }
+                            Console.WriteLine($"Extracted: {res.Value}");
+                        }
+                    }
+                } catch (Exception ex) {
+                    Console.WriteLine($"Failed to extract {res.Value}: {ex.Message}");
+                }
+            }
         }
     }
 

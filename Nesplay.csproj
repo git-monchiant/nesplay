@@ -11,6 +11,7 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="res\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="res\Background.png" />
+    <EmbeddedResource Include="res\Logo.png" />
   </ItemGroup>
 
   <ItemGroup>
