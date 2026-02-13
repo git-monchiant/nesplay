@@ -35,6 +35,9 @@ public class SaveState {
     // Cartridge PRG RAM (for games that use it)
     public byte[]? PRG_RAM { get; set; }
 
+    // Cartridge CHR RAM (for graphics/tiles)
+    public byte[]? CHR_RAM { get; set; }
+
     private static string ExeDir => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
     private static string SavePath => Path.Combine(ExeDir, "savestate.json");
 
@@ -54,9 +57,22 @@ public class SaveState {
 
         // Save PPU (using reflection to access private fields)
         var ppuType = bus.ppu.GetType();
-        state.PPU_VRAM = (byte[])GetPrivateField(bus.ppu, "vram")!;
-        state.PPU_PaletteRAM = (byte[])GetPrivateField(bus.ppu, "paletteRAM")!;
-        state.PPU_OAM = (byte[])GetPrivateField(bus.ppu, "oam")!;
+        var vramSrc = (byte[]?)GetPrivateField(bus.ppu, "vram");
+        var paletteSrc = (byte[]?)GetPrivateField(bus.ppu, "paletteRAM");
+        var oamSrc = (byte[]?)GetPrivateField(bus.ppu, "oam");
+
+        if (vramSrc != null) {
+            state.PPU_VRAM = new byte[vramSrc.Length];
+            Array.Copy(vramSrc, state.PPU_VRAM, vramSrc.Length);
+        }
+        if (paletteSrc != null) {
+            state.PPU_PaletteRAM = new byte[paletteSrc.Length];
+            Array.Copy(paletteSrc, state.PPU_PaletteRAM, paletteSrc.Length);
+        }
+        if (oamSrc != null) {
+            state.PPU_OAM = new byte[oamSrc.Length];
+            Array.Copy(oamSrc, state.PPU_OAM, oamSrc.Length);
+        }
         state.PPU_CTRL = (byte)GetPrivateField(bus.ppu, "PPUCTRL")!;
         state.PPU_MASK = (byte)GetPrivateField(bus.ppu, "PPUMASK")!;
         state.PPU_STATUS = (byte)GetPrivateField(bus.ppu, "PPUSTATUS")!;
@@ -72,6 +88,12 @@ public class SaveState {
         state.PPU_ScanlineCycle = (int)GetPrivateField(bus.ppu, "scanlineCycle")!;
         state.PPU_Scanline = (int)GetPrivateField(bus.ppu, "scanline")!;
         state.PPU_DataBuffer = (byte)GetPrivateField(bus.ppu, "ppuDataBuffer")!;
+
+        // Save Cartridge CHR RAM (for graphics)
+        if (bus.cartridge.chrRAM != null) {
+            state.CHR_RAM = new byte[bus.cartridge.chrRAM.Length];
+            Array.Copy(bus.cartridge.chrRAM, state.CHR_RAM, bus.cartridge.chrRAM.Length);
+        }
 
         // Save to file
         var options = new JsonSerializerOptions { WriteIndented = true };
@@ -105,7 +127,8 @@ public class SaveState {
             bus.cpu.status = state.CPU_Status;
 
             // Restore RAM
-            Array.Copy(state.RAM, bus.ram, 2048);
+            if (state.RAM != null)
+                Array.Copy(state.RAM, bus.ram, Math.Min(state.RAM.Length, bus.ram.Length));
 
             // Restore PPU arrays (copy content, not replace reference)
             var vram = (byte[]?)GetPrivateField(bus.ppu, "vram");
@@ -135,6 +158,11 @@ public class SaveState {
             SetPrivateField(bus.ppu, "scanlineCycle", state.PPU_ScanlineCycle);
             SetPrivateField(bus.ppu, "scanline", state.PPU_Scanline);
             SetPrivateField(bus.ppu, "ppuDataBuffer", state.PPU_DataBuffer);
+
+            // Restore Cartridge CHR RAM (for graphics)
+            if (state.CHR_RAM != null && bus.cartridge.chrRAM != null) {
+                Array.Copy(state.CHR_RAM, bus.cartridge.chrRAM, Math.Min(state.CHR_RAM.Length, bus.cartridge.chrRAM.Length));
+            }
 
             Console.WriteLine("State loaded!");
             Notification.Show("LOADED");

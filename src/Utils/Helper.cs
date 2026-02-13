@@ -60,19 +60,17 @@ public class Helper {
 
         foreach (var res in resources) {
             var filePath = Path.Combine(resDir, res.Value);
-            if (!File.Exists(filePath)) {
-                try {
-                    using (var stream = assembly.GetManifestResourceStream(res.Key)) {
-                        if (stream != null) {
-                            using (var fileStream = File.Create(filePath)) {
-                                stream.CopyTo(fileStream);
-                            }
-                            Console.WriteLine($"Extracted: {res.Value}");
+            // Always overwrite to ensure latest icons
+            try {
+                using (var stream = assembly.GetManifestResourceStream(res.Key)) {
+                    if (stream != null) {
+                        using (var fileStream = File.Create(filePath)) {
+                            stream.CopyTo(fileStream);
                         }
                     }
-                } catch (Exception ex) {
-                    Console.WriteLine($"Failed to extract {res.Value}: {ex.Message}");
                 }
+            } catch (Exception ex) {
+                Console.WriteLine($"Failed to extract {res.Value}: {ex.Message}");
             }
         }
     }

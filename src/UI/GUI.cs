@@ -69,7 +69,8 @@ public class GUI {
 
             Raylib.ClearBackground(Color.Black);
 
-            MenuBar();
+            // Menu bar hidden for embedded ROM build
+            // MenuBar();
 
             if ((Helper.romPath.Length != 0 || Helper.embeddedRom != null) && Helper.insertingRom == false) {
                 nes.SetRenderOffset(offsetX, 0);
@@ -82,9 +83,10 @@ public class GUI {
                 Raylib.DrawTextureEx(backgroundTexture, new System.Numerics.Vector2(offsetX, -5), 0, (float)(Helper.scale*0.50), Color.White);
             }
 
-            if (Raylib.IsKeyPressed(KeyboardKey.Space)) Helper.showMenuBar = !Helper.showMenuBar;
-            
-            if (Helper.fpsEnable) Raylib.DrawFPS(0, Helper.showMenuBar ? 19 : 0);
+            // Space key toggle disabled for embedded ROM build
+            // if (Raylib.IsKeyPressed(KeyboardKey.Space)) Helper.showMenuBar = !Helper.showMenuBar;
+
+            if (Helper.fpsEnable) Raylib.DrawFPS(0, 0);
 
             // Draw save/load notification
             Notification.Draw(10, windowHeight - 40);

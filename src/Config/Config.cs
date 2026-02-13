@@ -16,20 +16,20 @@ public class KeyboardConfig {
 
 public class XInputConfig {
     // Xbox controller layout: A(bottom), B(right), X(left), Y(top)
-    public int A { get; set; } = (int)GamepadButton.RightFaceLeft;       // X button = shoot
-    public int B { get; set; } = (int)GamepadButton.RightFaceDown;       // A button = jump
-    public int TurboA { get; set; } = (int)GamepadButton.RightFaceUp;    // Y button = turbo shoot
-    public int TurboB { get; set; } = (int)GamepadButton.RightFaceRight; // B button = turbo jump
+    public int A { get; set; } = (int)GamepadButton.RightFaceDown;       // A button = jump (NES A)
+    public int B { get; set; } = (int)GamepadButton.RightFaceLeft;       // X button = shoot (NES B)
+    public int TurboA { get; set; } = (int)GamepadButton.RightFaceRight; // B button = turbo jump
+    public int TurboB { get; set; } = (int)GamepadButton.RightFaceUp;    // Y button = turbo shoot
     public int Select { get; set; } = (int)GamepadButton.MiddleLeft;     // Back
     public int Start { get; set; } = (int)GamepadButton.MiddleRight;     // Start
 }
 
 public class PSInputConfig {
     // PlayStation controller layout: Cross(bottom), Circle(right), Square(left), Triangle(top)
-    public int A { get; set; } = (int)GamepadButton.RightFaceLeft;       // Square = shoot
-    public int B { get; set; } = (int)GamepadButton.RightFaceDown;       // Cross = jump
-    public int TurboA { get; set; } = (int)GamepadButton.RightFaceUp;    // Triangle = turbo shoot
-    public int TurboB { get; set; } = (int)GamepadButton.RightFaceRight; // Circle = turbo jump
+    public int A { get; set; } = (int)GamepadButton.RightFaceDown;       // Cross = jump (NES A)
+    public int B { get; set; } = (int)GamepadButton.RightFaceLeft;       // Square = shoot (NES B)
+    public int TurboA { get; set; } = (int)GamepadButton.RightFaceRight; // Circle = turbo jump
+    public int TurboB { get; set; } = (int)GamepadButton.RightFaceUp;    // Triangle = turbo shoot
     public int Select { get; set; } = (int)GamepadButton.MiddleLeft;     // Share
     public int Start { get; set; } = (int)GamepadButton.MiddleRight;     // Options
 }
