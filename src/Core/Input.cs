@@ -7,6 +7,10 @@ public class Input {
     private int turboCounter = 0;
     private string? detectedGamepadName = null;
     private bool isPlayStationController = false;
+    private bool gameStarted = false;
+    private bool isPaused = false;
+    private bool prevStartState = false;
+    private bool prevXButtonState = false;
 
     private unsafe void DetectGamepadType() {
         if (Raylib.IsGamepadAvailable(0)) {
@@ -49,6 +53,7 @@ public class Input {
         if (Raylib.IsKeyDown((KeyboardKey)kb.Left)) controllerState |= 1 << 6;
         if (Raylib.IsKeyDown((KeyboardKey)kb.Right)) controllerState |= 1 << 7;
 
+
         // Gamepad input (auto-detect Xbox vs PlayStation)
         DetectGamepadType();
         if (Raylib.IsGamepadAvailable(0)) {
@@ -80,6 +85,27 @@ public class Input {
             if (axisY > cfg.AnalogDeadzone) controllerState |= 1 << 5;
             if (axisX < -cfg.AnalogDeadzone) controllerState |= 1 << 6;
             if (axisX > cfg.AnalogDeadzone) controllerState |= 1 << 7;
+
+            // D-pad Up/Down also triggers Select (works always, for menu navigation)
+            if (Raylib.IsGamepadButtonDown(0, GamepadButton.LeftFaceUp) ||
+                Raylib.IsGamepadButtonDown(0, GamepadButton.LeftFaceDown))
+                controllerState |= 1 << 2; // Select
+
+            // Bottom face button (PS Cross / Xbox A) = Start when not playing
+            bool xDown = Raylib.IsGamepadButtonDown(0, GamepadButton.RightFaceDown);
+            bool xJustPressed = xDown && !prevXButtonState;
+            prevXButtonState = xDown;
+
+            if ((!gameStarted || isPaused) && xJustPressed)
+                controllerState |= 1 << 3; // Start
+
+            // Track pause state from Start rising edge
+            bool startNow = (controllerState & (1 << 3)) != 0;
+            if (startNow && !prevStartState) {
+                if (!gameStarted) gameStarted = true;
+                else isPaused = !isPaused;
+            }
+            prevStartState = startNow;
         }
     }
 

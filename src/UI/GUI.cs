@@ -19,14 +19,16 @@ public class GUI {
 
     Image icon;
     Texture2D backgroundTexture;
+    Texture2D logoTexture;
 
     public GUI() {
         if (!Helper.raylibLog) Raylib.SetTraceLogLevel(TraceLogLevel.None);
 
-        // 16:9 window with game centered (letterbox)
-        int windowHeight = NES_HEIGHT * Helper.scale;
-        int windowWidth = windowHeight * 16 / 9;
-        Raylib.InitWindow(windowWidth, windowHeight, RomConfig.Current.WindowTitle);
+        // Fullscreen
+        Raylib.SetConfigFlags(ConfigFlags.FullscreenMode);
+        int monW = Raylib.GetMonitorWidth(0);
+        int monH = Raylib.GetMonitorHeight(0);
+        Raylib.InitWindow(monW, monH, Config.Instance.Rom.WindowTitle);
         Raylib.InitAudioDevice();
         Raylib.SetTargetFPS(60);
 
@@ -44,26 +46,34 @@ public class GUI {
 
         fileDialog = new FileDialog(Directory.GetCurrentDirectory());
 
-        icon = Raylib.LoadImage(Path.Combine(Helper.ExeDirectory, "res", "Logo.png"));
-        backgroundTexture = Raylib.LoadTexture(Path.Combine(Helper.ExeDirectory, "res", "Background.png"));
-
+        // Load images directly from embedded resources (no file extraction)
+        icon = LoadImageFromResource("Nesplay.res.Logo.png");
         Raylib.SetWindowIcon(icon);
+        logoTexture = Raylib.LoadTextureFromImage(icon);
+
+        var bgImage = LoadImageFromResource("Nesplay.res.Background.png");
+        backgroundTexture = Raylib.LoadTextureFromImage(bgImage);
+        Raylib.UnloadImage(bgImage);
     }
 
-    private int CalculateOffsetX() {
-        int windowWidth = NES_HEIGHT * Helper.scale * 16 / 9;
-        int gameWidth = NES_WIDTH * Helper.scale;
-        return (windowWidth - gameWidth) / 2;
+    // Calculate scale and offset to fit NES output in current window
+    private (float scale, int offsetX, int offsetY) CalculateLayout() {
+        int winW = Raylib.GetScreenWidth();
+        int winH = Raylib.GetScreenHeight();
+        float scaleX = winW / (float)NES_WIDTH;
+        float scaleY = winH / (float)NES_HEIGHT;
+        float scale = Math.Min(scaleX, scaleY);
+        int offsetX = (int)((winW - NES_WIDTH * scale) / 2);
+        int offsetY = (int)((winH - NES_HEIGHT * scale) / 2);
+        return (scale, offsetX, offsetY);
     }
+
+    private int loadingFrames = 0;
+    private const int LOADING_DURATION = 90; // 1.5 seconds at 60fps
 
     public void Run() {
         while (!Raylib.WindowShouldClose()) {
-            // Update window size for 16:9 ratio
-            int windowHeight = NES_HEIGHT * Helper.scale;
-            int windowWidth = windowHeight * 16 / 9;
-            Raylib.SetWindowSize(windowWidth, windowHeight);
-
-            int offsetX = CalculateOffsetX();
+            var (scale, offsetX, offsetY) = CalculateLayout();
 
             Raylib.BeginDrawing();
             rlImGui.Begin();
@@ -73,27 +83,34 @@ public class GUI {
             // Menu bar hidden for embedded ROM build
             // MenuBar();
 
-            if ((Helper.romPath.Length != 0 || Helper.embeddedRom != null) && Helper.insertingRom == false) {
-                nes.SetRenderOffset(offsetX, 0);
-                nes.Run();
+            if (loadingFrames < LOADING_DURATION && (Helper.embeddedRom != null || Helper.romPath.Length != 0)) {
+                // Loading screen - show logo centered
+                loadingFrames++;
+                int winW = Raylib.GetScreenWidth();
+                int winH2 = Raylib.GetScreenHeight();
+                float logoScale = Math.Min((float)winW / logoTexture.Width, (float)winH2 / logoTexture.Height) * 0.3f;
+                int logoW = (int)(logoTexture.Width * logoScale);
+                int logoH = (int)(logoTexture.Height * logoScale);
+                Raylib.DrawTextureEx(logoTexture, new System.Numerics.Vector2((winW - logoW) / 2, (winH2 - logoH) / 2), 0, logoScale, Color.White);
+            } else if ((Helper.romPath.Length != 0 || Helper.embeddedRom != null) && Helper.insertingRom == false) {
+                nes.SetRenderOffset(offsetX, offsetY);
+                nes.RunScaled(scale);
             } else if (Helper.insertingRom == true) {
                 nes = new NES();
                 Helper.insertingRom = false;
             } else {
                 Raylib.ClearBackground(Color.DarkGray);
-                Raylib.DrawTextureEx(backgroundTexture, new System.Numerics.Vector2(offsetX, -5), 0, (float)(Helper.scale*0.50), Color.White);
+                Raylib.DrawTextureEx(backgroundTexture, new System.Numerics.Vector2(offsetX, offsetY), 0, scale * 0.5f, Color.White);
             }
 
-            // Space key toggle disabled for embedded ROM build
-            // if (Raylib.IsKeyPressed(KeyboardKey.Space)) Helper.showMenuBar = !Helper.showMenuBar;
-
             // Update title bar with FPS
-            Raylib.SetWindowTitle($"{RomConfig.Current.WindowTitle} - {Raylib.GetFPS()} fps");
+            Raylib.SetWindowTitle($"{Config.Instance.Rom.WindowTitle} - {Raylib.GetFPS()} fps");
 
             if (Helper.fpsEnable) Raylib.DrawFPS(0, 0);
 
             // Draw save/load notification
-            Notification.Draw(10, windowHeight - 40);
+            int winH = Raylib.GetScreenHeight();
+            Notification.Draw(10, winH - 40);
 
             rlImGui.End();
             Raylib.EndDrawing();
@@ -102,6 +119,20 @@ public class GUI {
         if (nes != null) nes.bus.apu.Close();
         Raylib.CloseAudioDevice();
         Raylib.CloseWindow();
+    }
+
+    private static Image LoadImageFromResource(string resourceName) {
+        byte[]? data = Helper.LoadEmbeddedResource(resourceName);
+        if (data != null) {
+            unsafe {
+                byte[] fileType = System.Text.Encoding.ASCII.GetBytes(".png\0");
+                fixed (byte* ptr = data)
+                fixed (byte* ftPtr = fileType) {
+                    return Raylib.LoadImageFromMemory((sbyte*)ftPtr, ptr, data.Length);
+                }
+            }
+        }
+        return new Image();
     }
 
     public void MenuBar() {

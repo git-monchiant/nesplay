@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 public class SaveState {
     // CPU State
     public byte CPU_A { get; set; }
@@ -37,9 +35,6 @@ public class SaveState {
 
     // Cartridge CHR RAM (for graphics/tiles)
     public byte[]? CHR_RAM { get; set; }
-
-    private static string ExeDir => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-    private static string SavePath => Path.Combine(ExeDir, "savestate.json");
 
     public static void Save(Bus bus) {
         var state = new SaveState();
@@ -95,28 +90,22 @@ public class SaveState {
             Array.Copy(bus.cartridge.chrRAM, state.CHR_RAM, bus.cartridge.chrRAM.Length);
         }
 
-        // Save to file
-        var options = new JsonSerializerOptions { WriteIndented = true };
-        string json = JsonSerializer.Serialize(state, options);
-        File.WriteAllText(SavePath, json);
+        // Save to config
+        Config.Instance.State = state;
+        Config.Instance.Save();
         Console.WriteLine("State saved!");
         Notification.Show("SAVED");
     }
 
     public static void Load(Bus bus) {
-        if (!File.Exists(SavePath)) {
+        var state = Config.Instance.State;
+        if (state == null) {
             Console.WriteLine("No save state found!");
             Notification.Show("NO SAVE FOUND");
             return;
         }
 
         try {
-            string json = File.ReadAllText(SavePath);
-            var state = JsonSerializer.Deserialize<SaveState>(json);
-            if (state == null) {
-                Console.WriteLine("Failed to deserialize save state!");
-                return;
-            }
 
             // Restore CPU
             bus.cpu.A = state.CPU_A;

@@ -1,11 +1,7 @@
-# Build outputs
+# Build results
 bin/
 obj/
-obj.*/
-*.o
-*.dylib
-*.dll
-*.so
+publish/
 
 # IDE
 .vs/
@@ -13,9 +9,13 @@ obj.*/
 *.user
 *.suo
 
-# macOS
+# OS
 .DS_Store
+Thumbs.db
 
-# dotnet
-*.nupkg
-project.lock.json
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp

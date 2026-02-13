@@ -26,9 +26,20 @@ public class NES {
         Console.WriteLine("NES");
     }
 
+    private float renderScale = 3;
+
     public void SetRenderOffset(int x, int y) {
         bus.ppu.textureX = x;
         bus.ppu.textureY = y;
+    }
+
+    public void RunScaled(float scale) {
+        renderScale = scale;
+        Run();
+    }
+
+    public void DrawLastFrame(float scale) {
+        bus.ppu.DrawFrame(scale);
     }
 
     public void Run() {
@@ -42,7 +53,7 @@ public class NES {
 
             // Apply cheat based on RomConfig
             // Wait until game initializes lives (value > 0) then set cheat value
-            var romCfg = RomConfig.Current;
+            var romCfg = Config.Instance.Rom;
             frameCount++;
             if (!livesSet && romCfg.CheatEnabled && frameCount > romCfg.CheatDelayFrames) {
                 // Check if lives have been initialized (> 0) and not already at cheat value
@@ -71,7 +82,7 @@ public class NES {
             }
 
             bus.apu.OutputSamples();
-            bus.ppu.DrawFrame(Helper.scale);
+            bus.ppu.DrawFrame(renderScale);
         } catch (Exception ex) {
             LogError("Run", ex);
             throw; // Re-throw to crash with log

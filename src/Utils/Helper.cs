@@ -18,13 +18,13 @@ public class Helper {
     public static Version version = new Version(1, 0, 0);
     public static byte[]? embeddedRom = null;
 
+    // Exe name without extension (e.g. "Contra") for per-game file naming
+    public static string ExeName => Path.GetFileNameWithoutExtension(Environment.ProcessPath) ?? "NES";
+
     static Helper() {
         // Load settings from config
         scale = Config.Instance.Scale;
         fpsEnable = Config.Instance.ShowFps;
-
-        // Extract embedded resources (images) on first run
-        ExtractEmbeddedResources();
 
         // Try to load embedded ROM from resources
         try {
@@ -43,35 +43,17 @@ public class Helper {
         }
     }
 
-    private static void ExtractEmbeddedResources() {
-        var assembly = Assembly.GetExecutingAssembly();
-        var resDir = Path.Combine(ExeDirectory, "res");
-
-        // Create res folder if it doesn't exist
-        if (!Directory.Exists(resDir)) {
-            Directory.CreateDirectory(resDir);
-        }
-
-        // List of resources to extract
-        var resources = new Dictionary<string, string> {
-            { "Nesplay.res.Background.png", "Background.png" },
-            { "Nesplay.res.Logo.png", "Logo.png" }
-        };
-
-        foreach (var res in resources) {
-            var filePath = Path.Combine(resDir, res.Value);
-            // Always overwrite to ensure latest icons
-            try {
-                using (var stream = assembly.GetManifestResourceStream(res.Key)) {
-                    if (stream != null) {
-                        using (var fileStream = File.Create(filePath)) {
-                            stream.CopyTo(fileStream);
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                Console.WriteLine($"Failed to extract {res.Value}: {ex.Message}");
-            }
+    /// <summary>Load embedded resource as byte array (for loading images from memory)</summary>
+    public static byte[]? LoadEmbeddedResource(string resourceName) {
+        try {
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null) return null;
+            byte[] data = new byte[stream.Length];
+            stream.Read(data, 0, data.Length);
+            return data;
+        } catch {
+            return null;
         }
     }
 

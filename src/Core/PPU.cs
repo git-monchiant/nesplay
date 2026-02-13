@@ -430,7 +430,7 @@ public class PPU {
         return NesPalette[paletteColorIndex % 64];
     }    
 
-    public void DrawFrame(int scale) {
+    public void DrawFrame(float scale) {
         for (int y = 0; y < ScreenHeight; y++) {
             for (int x = 0; x < ScreenWidth; x++) {
                 Color color = frameBuffer[y * ScreenWidth + x];

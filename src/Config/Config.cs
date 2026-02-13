@@ -34,9 +34,20 @@ public class PSInputConfig {
     public int Start { get; set; } = (int)GamepadButton.MiddleRight;     // Options
 }
 
+public class RomSettings {
+    public string RomName { get; set; } = "Game";
+    public string WindowTitle { get; set; } = "NES";
+    public bool CheatEnabled { get; set; } = false;
+    public int CheatAddress1 { get; set; } = 0;
+    public int CheatAddress2 { get; set; } = 0;
+    public byte CheatValue { get; set; } = 0;
+    public int CheatDelayFrames { get; set; } = 180;
+}
+
 public class Config {
     private static string ExeDir => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-    private static string ConfigPath => Path.Combine(ExeDir, "config.json");
+    private static string ExeName => Path.GetFileNameWithoutExtension(Environment.ProcessPath) ?? "NES";
+    private static string ConfigPath => Path.Combine(ExeDir, $"{ExeName}.config");
     private static Config? _instance;
 
     public static Config Instance {
@@ -62,6 +73,45 @@ public class Config {
 
     // Turbo speed (frames per toggle)
     public int TurboSpeed { get; set; } = 3;
+
+    // ROM settings (game-specific)
+    public RomSettings Rom { get; set; } = GetDefaultRomSettings();
+
+    // Save state (stored in config, no separate file)
+    public SaveState? State { get; set; }
+
+    private static RomSettings GetDefaultRomSettings() {
+        // Auto-detect ROM config based on executable name
+        return ExeName.ToLowerInvariant() switch {
+            "contra" => new RomSettings {
+                RomName = "Contra",
+                WindowTitle = "Contra",
+                CheatEnabled = true,
+                CheatAddress1 = 0x0032,
+                CheatAddress2 = 0x0033,
+                CheatValue = 29,
+                CheatDelayFrames = 180
+            },
+            "supermariobros" or "mario" => new RomSettings {
+                RomName = "SuperMarioBros",
+                WindowTitle = "Super Mario Bros",
+                CheatEnabled = true,
+                CheatAddress1 = 0x075A,
+                CheatAddress2 = 0,
+                CheatValue = 99,
+                CheatDelayFrames = 120
+            },
+            "megaman2" or "megaman" => new RomSettings {
+                RomName = "Megaman2",
+                WindowTitle = "Mega Man 2",
+                CheatEnabled = false
+            },
+            _ => new RomSettings {
+                RomName = ExeName,
+                WindowTitle = ExeName
+            }
+        };
+    }
 
     public static Config Load() {
         try {
