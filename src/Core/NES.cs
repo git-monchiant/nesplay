@@ -67,8 +67,10 @@ public class NES {
                 int used = bus.cpu.ExecuteInstruction();
                 cycles += used;
                 bus.ppu.Step(used * 3);
+                bus.apu.Step(used);
             }
 
+            bus.apu.OutputSamples();
             bus.ppu.DrawFrame(Helper.scale);
         } catch (Exception ex) {
             LogError("Run", ex);

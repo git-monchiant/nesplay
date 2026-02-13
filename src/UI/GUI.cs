@@ -27,6 +27,7 @@ public class GUI {
         int windowHeight = NES_HEIGHT * Helper.scale;
         int windowWidth = windowHeight * 16 / 9;
         Raylib.InitWindow(windowWidth, windowHeight, RomConfig.Current.WindowTitle);
+        Raylib.InitAudioDevice();
         Raylib.SetTargetFPS(60);
 
         rlImGui.Setup(true);
@@ -86,6 +87,9 @@ public class GUI {
             // Space key toggle disabled for embedded ROM build
             // if (Raylib.IsKeyPressed(KeyboardKey.Space)) Helper.showMenuBar = !Helper.showMenuBar;
 
+            // Update title bar with FPS
+            Raylib.SetWindowTitle($"{RomConfig.Current.WindowTitle} - {Raylib.GetFPS()} fps");
+
             if (Helper.fpsEnable) Raylib.DrawFPS(0, 0);
 
             // Draw save/load notification
@@ -95,6 +99,8 @@ public class GUI {
             Raylib.EndDrawing();
         }
 
+        if (nes != null) nes.bus.apu.Close();
+        Raylib.CloseAudioDevice();
         Raylib.CloseWindow();
     }
 
