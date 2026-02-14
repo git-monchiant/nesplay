@@ -1,0 +1,90 @@
+// Copyright (c) 2014- NESPLAY_PSP Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0 or later versions.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official git repository and contact information can be found at
+// https://github.com/hrydgard/nesplay_psp and http://www.nesplay_psp.org/.
+
+#pragma once
+
+#include <functional>
+#include <memory>
+
+#include "Common/File/Path.h"
+#include "Common/UI/UIScreen.h"
+#include "Common/UI/ViewGroup.h"
+#include "Core/ControlMapper.h"
+#include "UI/BaseScreens.h"
+#include "UI/Screen.h"
+#include "UI/GameInfoCache.h"
+
+class GamePauseScreen : public UIBaseDialogScreen, protected ControlListener {
+public:
+	GamePauseScreen(const Path &filename, bool bootPending);
+	~GamePauseScreen();
+
+	void dialogFinished(const Screen *dialog, DialogResult dr) override;
+
+	const char *tag() const override { return "GamePause"; }
+	bool isTransparent() const override { return true; }
+
+protected:
+	void CreateViews() override;
+	void update() override;
+	UI::Margins RootMargins() const override;
+
+	// For processing of certain mapped keys.
+	bool UnsyncKey(const KeyInput &key) override;
+	void UnsyncAxis(const AxisInput *axes, size_t count) override;
+
+	void OnVKey(VirtKey virtualKeyCode, bool down);
+
+private:
+	void CreateSavestateControls(UI::LinearLayout *viewGroup);
+
+	void OnGameSettings(UI::EventParams &e);
+	void OnExit(UI::EventParams &e);
+	void OnReportFeedback(UI::EventParams &e);
+
+	void OnRewind(UI::EventParams &e);
+	void OnLoadUndo(UI::EventParams &e);
+	void OnLastSaveUndo(UI::EventParams &e);
+
+	void OnCreateConfig(UI::EventParams &e);
+	void OnDeleteConfig(UI::EventParams &e);
+
+	void OnState(UI::EventParams &e);
+	void ShowContextMenu(UI::View *menuButton, bool portrait);
+
+	void AddExtraOptions(UI::ViewGroup *parent);
+
+	// hack
+	bool finishNextFrame_ = false;
+	DialogResult finishNextFrameResult_ = DR_CANCEL;
+
+	UI::Choice *playButton_ = nullptr;
+
+	// State change tracking, a bit ugly heh, but works.
+	bool lastOnline_ = false;
+	bool lastNetInited_ = false;
+	bool lastNetInetInited_ = false;
+	bool lastAdhocServerConnected_ = false;
+	bool lastDNSConfigLoaded_ = false;
+
+	bool bootPending_ = false;
+
+	std::string saveStatePrefix_;
+	double createdTime_ = 0.0;
+};
+
+std::string GetConfirmExitMessage();

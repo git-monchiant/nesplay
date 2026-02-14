@@ -1,0 +1,57 @@
+# Build artifacts
+**/x64/
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+**/_Output/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Compiled binaries
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.exp
+*.idb
+*.ipdb
+*.iobj
+*.tlog
+*.ilk
+*.manifest
+*.recipe
+*.FileListAbsolute.txt
+
+# Publish & ROMs
+publish/
+**/roms/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp & logs
+*.tmp
+*.temp
+*.log
+build_log.txt
+build.bat
+
+# Prebuilt libraries (ffmpeg - keep Windows only)
+nesplay-psp/ext/ffmpeg/android/
+nesplay-psp/ext/ffmpeg/macosx/
+nesplay-psp/ext/ffmpeg/linux/
+nesplay-psp/ext/ffmpeg/ios/
+nesplay-psp/ext/ffmpeg/tvos/
+nesplay-psp/ext/ffmpeg/blackberry/
+nesplay-psp/ext/ffmpeg/wiiu/
+nesplay-psp/ext/ffmpeg/symbian/
+
+# Claude config
+.claude/
